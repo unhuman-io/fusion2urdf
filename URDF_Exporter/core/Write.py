@@ -10,7 +10,7 @@ from xml.etree.ElementTree import Element, SubElement
 from . import Link, Joint
 from ..utils import utils
 
-def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict):
+def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, design_name):
     """
     Write links information into urdf "repo/file_name"
     
@@ -39,7 +39,9 @@ def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict)
         link = Link.Link(name='base_link', xyz=[0,0,0], 
             center_of_mass=center_of_mass, repo=repo,
             mass=inertial_dict['base_link']['mass'],
-            inertia_tensor=inertial_dict['base_link']['inertia'])
+            inertia_tensor=inertial_dict['base_link']['inertia'],
+            bodies=inertial_dict['base_link']['bodies'],
+            design_name=design_name)
         links_xyz_dict[link.name] = link.xyz
         link.make_link_xml()
         f.write(link.link_xml)
@@ -53,7 +55,9 @@ def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict)
             link = Link.Link(name=name, xyz=joints_dict[joint]['xyz'],\
                 center_of_mass=center_of_mass,\
                 repo=repo, mass=inertial_dict[name]['mass'],\
-                inertia_tensor=inertial_dict[name]['inertia'])
+                inertia_tensor=inertial_dict[name]['inertia'],\
+                bodies=inertial_dict[name]['bodies'],\
+                design_name=design_name)
             links_xyz_dict[link.name] = link.xyz            
             link.make_link_xml()
             f.write(link.link_xml)
@@ -118,7 +122,7 @@ def write_gazebo_endtag(file_name):
         f.write('</robot>\n')
         
 
-def write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir):
+def write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir, root_name):
     try: os.mkdir(save_dir + '/urdf')
     except: pass 
 
@@ -135,23 +139,23 @@ def write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_n
         f.write('<xacro:include filename="$(find {})/urdf/{}.gazebo" />'.format(package_name, robot_name))
         f.write('\n')
 
-    write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict)
+    write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, root_name)
     write_joint_urdf(joints_dict, repo, links_xyz_dict, file_name)
     write_gazebo_endtag(file_name)
 
-def write_materials_xacro(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir):
+def write_materials_xacro(appearances_dict, robot_name, save_dir):
     try: os.mkdir(save_dir + '/urdf')
     except: pass  
 
     file_name = save_dir + '/urdf/materials.xacro'  # the name of urdf file
+
     with open(file_name, mode='w') as f:
         f.write('<?xml version="1.0" ?>\n')
         f.write('<robot name="{}" xmlns:xacro="http://www.ros.org/wiki/xacro" >\n'.format(robot_name))
-        f.write('\n')
-        f.write('<material name="silver">\n')
-        f.write('  <color rgba="0.700 0.700 0.700 1.000"/>\n')
-        f.write('</material>\n')
-        f.write('\n')
+        for name, appearance in appearances_dict.items():
+            f.write('<material name="{}">\n'.format(name))
+            f.write('  <color rgba="{} {} {} {}"/>\n'.format(appearance[1]/255, appearance[2]/255, appearance[3]/255, appearance[4]/255))
+            f.write('</material>\n')
         f.write('</robot>\n')
 
 def write_transmissions_xacro(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir):

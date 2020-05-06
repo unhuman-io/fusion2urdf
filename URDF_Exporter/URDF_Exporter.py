@@ -72,11 +72,23 @@ def run(context):
             return 0
         
         links_xyz_dict = {}
-        
+
+        appearance_dict = {}
+        color_list = ["opaque_albedo", "metal_f0", "layered_diffuse", "transparent_color", "wood_early_color"]
+        for appearance in design.appearances:
+            properties = appearance.appearanceProperties
+            color = None
+            for color_item in color_list:
+                tmp = properties.itemById(color_item)
+                if (tmp):
+                    color = tmp.value.getColor()
+                    break
+            appearance_dict[appearance.name] = color  
+
         # --------------------
         # Generate URDF
-        Write.write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir)
-        Write.write_materials_xacro(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir)
+        Write.write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir, root.name)
+        Write.write_materials_xacro(appearance_dict, robot_name, save_dir)
         Write.write_transmissions_xacro(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir)
         Write.write_gazebo_xacro(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir)
         Write.write_display_launch(package_name, robot_name, save_dir)

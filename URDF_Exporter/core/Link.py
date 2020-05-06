@@ -11,7 +11,7 @@ from ..utils import utils
 
 class Link:
 
-    def __init__(self, name, xyz, center_of_mass, repo, mass, inertia_tensor):
+    def __init__(self, name, xyz, center_of_mass, repo, mass, inertia_tensor, bodies, design_name):
         """
         Parameters
         ----------
@@ -39,6 +39,8 @@ class Link:
         self.repo = repo
         self.mass = mass
         self.inertia_tensor = inertia_tensor
+        self.bodies = bodies
+        self.design_name = design_name
         
     def make_link_xml(self):
         """
@@ -61,14 +63,15 @@ class Link:
             'iyz':str(self.inertia_tensor[4]), 'ixz':str(self.inertia_tensor[5])}        
         
         # visual
-        visual = SubElement(link, 'visual')
-        origin_v = SubElement(visual, 'origin')
-        origin_v.attrib = {'xyz':' '.join([str(_) for _ in self.xyz]), 'rpy':'0 0 0'}
-        geometry_v = SubElement(visual, 'geometry')
-        mesh_v = SubElement(geometry_v, 'mesh')
-        mesh_v.attrib = {'filename':'package://' + self.repo + self.name + '.stl','scale':'0.001 0.001 0.001'}
-        material = SubElement(visual, 'material')
-        material.attrib = {'name':'silver'}
+        for body in self.bodies:
+            visual = SubElement(link, 'visual')
+            origin_v = SubElement(visual, 'origin')
+            origin_v.attrib = {'xyz':' '.join([str(_) for _ in self.xyz]), 'rpy':'0 0 0'}
+            geometry_v = SubElement(visual, 'geometry')
+            mesh_v = SubElement(geometry_v, 'mesh')
+            mesh_v.attrib = {'filename':'package://' + self.repo + self.name + "_" + self.design_name + body["name"] + "_" + self.name + '.stl','scale':'0.001 0.001 0.001'}
+            material = SubElement(visual, 'material')
+            material.attrib = {'name': body["material"]}
         
         # collision
         collision = SubElement(link, 'collision')
@@ -113,6 +116,9 @@ def make_inertial_dict(root, msg):
         occs_dict['mass'] = mass
         center_of_mass = [_/100.0 for _ in prop.centerOfMass.asArray()] ## cm to m
         occs_dict['center_of_mass'] = center_of_mass
+        occs_dict['bodies'] = []
+        for body in occs.bRepBodies:
+            occs_dict['bodies'].append({"name": body.name, "material": body.appearance.name})
 
         # https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-ce341ee6-4490-11e5-b25b-f8b156d7cd97
         (_, xx, yy, zz, xy, yz, xz) = prop.getXYZMomentsOfInertia()
