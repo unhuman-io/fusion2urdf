@@ -11,7 +11,7 @@ from ..utils import utils
 
 class Link:
 
-    def __init__(self, name, xyz, center_of_mass, repo, mass, inertia_tensor, bodies, design_name):
+    def __init__(self, name, xyz, center_of_mass, repo, mass, inertia_tensor, bodies, design_name, materials):
         """
         Parameters
         ----------
@@ -41,6 +41,7 @@ class Link:
         self.inertia_tensor = inertia_tensor
         self.bodies = bodies
         self.design_name = design_name
+        self.materials = materials
         
     def make_link_xml(self):
         """
@@ -72,6 +73,9 @@ class Link:
             mesh_v.attrib = {'filename':'package://' + self.repo + self.name + "_" + self.design_name + body["name"] + "_" + self.name + '.stl','scale':'0.001 0.001 0.001'}
             material = SubElement(visual, 'material')
             material.attrib = {'name': body["material"]}
+            color = SubElement(material, 'color') # rviz is not reading the materials properly in melodic so specify color here
+            appearance = self.materials[body["material"]]
+            color.attrib = {'rgba': "{} {} {} {}".format(appearance[1]/255, appearance[2]/255, appearance[3]/255, appearance[4]/255)}
         
         # collision
         collision = SubElement(link, 'collision')

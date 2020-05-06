@@ -10,7 +10,7 @@ from xml.etree.ElementTree import Element, SubElement
 from . import Link, Joint
 from ..utils import utils
 
-def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, design_name):
+def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, appearance_dict, design_name):
     """
     Write links information into urdf "repo/file_name"
     
@@ -41,6 +41,7 @@ def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict,
             mass=inertial_dict['base_link']['mass'],
             inertia_tensor=inertial_dict['base_link']['inertia'],
             bodies=inertial_dict['base_link']['bodies'],
+            materials=appearance_dict,
             design_name=design_name)
         links_xyz_dict[link.name] = link.xyz
         link.make_link_xml()
@@ -57,6 +58,7 @@ def write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict,
                 repo=repo, mass=inertial_dict[name]['mass'],\
                 inertia_tensor=inertial_dict[name]['inertia'],\
                 bodies=inertial_dict[name]['bodies'],\
+                materials=appearance_dict,\
                 design_name=design_name)
             links_xyz_dict[link.name] = link.xyz            
             link.make_link_xml()
@@ -122,7 +124,7 @@ def write_gazebo_endtag(file_name):
         f.write('</robot>\n')
         
 
-def write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_name, save_dir, root_name):
+def write_urdf(joints_dict, links_xyz_dict, inertial_dict, appearance_dict, package_name, robot_name, save_dir, root_name):
     try: os.mkdir(save_dir + '/urdf')
     except: pass 
 
@@ -139,7 +141,7 @@ def write_urdf(joints_dict, links_xyz_dict, inertial_dict, package_name, robot_n
         f.write('<xacro:include filename="$(find {})/urdf/{}.gazebo" />'.format(package_name, robot_name))
         f.write('\n')
 
-    write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, root_name)
+    write_link_urdf(joints_dict, repo, links_xyz_dict, file_name, inertial_dict, appearance_dict, root_name)
     write_joint_urdf(joints_dict, repo, links_xyz_dict, file_name)
     write_gazebo_endtag(file_name)
 
