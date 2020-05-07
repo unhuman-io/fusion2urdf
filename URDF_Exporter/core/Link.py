@@ -70,7 +70,7 @@ class Link:
             origin_v.attrib = {'xyz':' '.join([str(_) for _ in self.xyz]), 'rpy':'0 0 0'}
             geometry_v = SubElement(visual, 'geometry')
             mesh_v = SubElement(geometry_v, 'mesh')
-            mesh_v.attrib = {'filename':'package://' + self.repo + self.name + "_" + self.design_name + body["name"] + "_" + self.name + '.stl','scale':'0.001 0.001 0.001'}
+            mesh_v.attrib = {'filename':'package://' + self.repo + self.name + "_" + self.design_name + "_" + body["name"] + "_" + self.name + '.stl','scale':'0.001 0.001 0.001'}
             material = SubElement(visual, 'material')
             material.attrib = {'name': body["material"]}
             color = SubElement(material, 'color') # rviz is not reading the materials properly in melodic so specify color here
